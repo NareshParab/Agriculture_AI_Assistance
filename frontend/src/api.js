@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -20,8 +20,18 @@ export const predictYield = async (data) => {
   return response.data;
 };
 
-export const optimizeFertilizer = async (data) => {
-  const response = await api.post('/api/fertilizer/optimize', data);
+/** Returns the list of crops available in the soil reference dataset. */
+export const getFertilizerCrops = async () => {
+  const response = await api.get('/api/fertilizer/crops');
+  return response.data;
+};
+
+/**
+ * Compare current N/P/K against soil dataset ranges for the given crop.
+ * @param {{ crop: string, N: number, P: number, K: number }} data
+ */
+export const recommendFertilizer = async (data) => {
+  const response = await api.post('/api/fertilizer/recommend', data);
   return response.data;
 };
 

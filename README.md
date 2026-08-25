@@ -1,18 +1,19 @@
 <div align="center">
 
-# 🌿 Precision Agriculture System
+# 🌿 Smart Agri — See. Predict. Grow.
 
 ### AI-Powered Plant Disease Detection, Crop Yield Prediction & Fertilizer Optimization
 
-[![Live Demo](https://img.shields.io/badge/🤗%20Hugging%20Face-Live%20Demo-yellow?style=for-the-badge)](https://sharmipandiyan-precision-agriculture.hf.space)
 [![Python](https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge&logo=python)](https://www.python.org/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#-license)
 
-*An end-to-end precision agriculture platform combining computer vision, machine learning, fertilizer optimization, and explainable AI to support data-driven farming decisions.*
+*An end-to-end precision agriculture platform combining computer vision, machine learning, fertilizer optimization, and explainable AI — now with a modern React frontend and a high-performance FastAPI backend.*
 
-[🌐 Live Demo](https://sharmipandiyan-precision-agriculture.hf.space) • [📂 Hugging Face Space](https://huggingface.co/spaces/SHARMIPANDIYAN/precision-agriculture) • [⚙️ Installation](#️-local-installation) • [🛠️ Tech Stack](#️-technology-stack)
+[⚙️ Local Setup](#️-local-setup) • [🛠️ Tech Stack](#️-technology-stack) • [📁 Project Structure](#-project-structure) • [🚀 Running the App](#-running-the-app)
 
 </div>
 
@@ -20,14 +21,14 @@
 
 ## 📖 Overview
 
-The **Precision Agriculture System** empowers farmers, researchers, and agricultural professionals with a single platform to:
+**Smart Agri** empowers farmers, researchers, and agricultural professionals with a single platform to:
 
-- 🔬 **Detect plant diseases** from leaf images using deep learning
-- 🌾 **Predict crop yield** using environmental and agricultural factors
-- 🧪 **Generate fertilizer recommendations** tailored to crop and soil conditions
-- 📊 **Understand model predictions** through explainable AI (SHAP) visualizations
+- 🔬 **Detect plant diseases** from leaf images using a CNN model (93.55% accuracy, 72 disease classes)
+- 🌾 **Predict crop yield** using environmental, soil, and agricultural factors (Random Forest / XGBoost ensemble)
+- 🧪 **Optimize fertilizer ratios** (NPK) to maximize yield for a given crop and region
+- 📊 **Understand model predictions** through SHAP explainability visualizations
 
-No installation needed — the app is fully deployed and accessible from any browser.
+The platform was originally built on Streamlit and has been **fully migrated** to a professional, high-performance **React 19 + Vite 8 frontend** backed by a **FastAPI** integration layer — with zero changes to the trained ML models.
 
 ---
 
@@ -35,42 +36,84 @@ No installation needed — the app is fully deployed and accessible from any bro
 
 | | |
 |---|---|
-| ✅ **Plant Disease Detection** | MobileNetV2 — 93.55% validation accuracy |
+| ✅ **Plant Disease Detection** | CNN (MobileNetV2-based) — 93.55% validation accuracy |
 | ✅ **Crop Yield Prediction** | Ensemble ML models (Random Forest, XGBoost) |
-| ✅ **Fertilizer Optimization** | NPK-based recommendation engine |
-| ✅ **Explainable AI** | SHAP-driven feature importance insights |
+| ✅ **Fertilizer Optimization** | NPK-based recommendation engine via brute-force grid search |
+| ✅ **Explainable AI** | SHAP-driven global feature importance (bar + beeswarm plots) |
 | ✅ **72 Disease Classes** | Spanning 20+ crop types |
 | ✅ **116,147 Training Images** | Sourced from the PlantVillage dataset |
-| ✅ **Fully Deployed** | Live and accessible on Hugging Face Spaces |
+| ✅ **React + FastAPI Frontend** | Migrated from Streamlit to a SPA with a REST API layer |
+| ✅ **Tailwind CSS v4 UI** | Custom brand design system with Inter + Playfair Display fonts |
 
 ---
 
 ## 📌 Features
 
-| Module | Functionality | Description |
-|---|---|---|
-| 🔬 **Disease Detection** | CNN Classification | Upload a leaf image and identify plant diseases with confidence scores |
-| 🌾 **Yield Prediction** | ML Ensemble Models | Predict crop yield using agricultural, environmental, and production data |
-| 🧪 **Fertilizer Optimizer** | NPK Recommendation | Generate optimal Nitrogen, Phosphorus, and Potassium recommendations |
-| 📊 **SHAP Insights** | Explainable AI | Visualize feature importance and model decision-making |
+| Module | Route | Functionality | Description |
+|---|---|---|---|
+| 🔬 **Disease Detection** | `/disease` | CNN Classification | Upload a leaf image — get disease name, plant, confidence %, and top-3 predictions |
+| 🌾 **Yield Prediction** | `/yield` | ML Ensemble | Predict crop yield (hg/ha & tonnes/ha) from climate, soil, and region inputs |
+| 🧪 **Fertilizer Optimizer** | `/fertilizer` | NPK Recommendation | Get optimal N, P, K values and delta vs. current — plus a yield impact analysis |
+| 📊 **SHAP Insights** | `/insights` | Explainable AI | View global feature importance (bar plot) and feature direction (beeswarm plot) |
 
 ---
 
-## 🤖 Models Used
+## 🏗️ Architecture
 
-| Model | Purpose | Performance |
+### New Architecture (React + FastAPI)
+
+```text
+                        Browser (localhost:5173)
+                               │
+                    ┌──────────▼──────────┐
+                    │   React 19 + Vite   │  ← SPA Frontend
+                    │   Tailwind CSS v4   │
+                    │   React Router v7   │
+                    └──────────┬──────────┘
+                               │ Axios (HTTP)
+                               ▼
+                    ┌──────────────────────┐
+                    │  FastAPI (port 8000) │  ← REST API Layer
+                    │  Uvicorn + CORS      │
+                    └───┬──────┬──────┬───┘
+                        │      │      │
+              ┌─────────┘  ┌───┘  ┌───┘
+              ▼            ▼      ▼
+         TensorFlow    Scikit   src/optimizer.py
+         CNN Model     Learn    (NPK grid search)
+         (H5 file)    (Pickle)
+```
+
+### API Endpoints
+
+| Method | Endpoint | Description |
 |---|---|---|
-| **MobileNetV2** (Transfer Learning) | Plant Disease Detection | **93.55% Accuracy** |
-| **Random Forest** | Crop Yield Prediction | Evaluated via R² Score |
-| **XGBoost** | Crop Yield Prediction | Evaluated via R² Score |
-| **SHAP** | Model Explainability | Feature Impact Analysis |
+| `GET` | `/health` | Health check |
+| `GET` | `/api/metadata` | Returns available crops and regions for dropdowns |
+| `POST` | `/api/disease/predict` | Accepts `multipart/form-data` image → returns prediction JSON |
+| `POST` | `/api/yield/predict` | Accepts JSON body → returns `predicted_yield_hg_ha` + `tonnes_ha` |
+| `POST` | `/api/fertilizer/optimize` | Accepts crop/area/NPK → returns optimal NPK + yield impact |
+| `GET` | `/api/shap/insights` | Returns SHAP plot images as base64-encoded PNG strings |
+
+---
+
+## 🤖 Models
+
+| Model | File | Purpose | Performance |
+|---|---|---|---|
+| **CNN (MobileNetV2-based)** | `models/cnn_disease_model.h5` | Plant Disease Detection | **93.55% Accuracy** |
+| **Random Forest / XGBoost Ensemble** | `models/best_model.pkl` | Crop Yield Prediction | Evaluated via R² Score |
+| **StandardScaler** | `models/scaler.pkl` | Feature normalization for yield model | — |
+| **LabelEncoder (area)** | `models/le_area.pkl` | Encodes region string for yield model | — |
+| **LabelEncoder (crop)** | `models/le_item.pkl` | Encodes crop string for yield model | — |
+| **Feature Columns** | `models/feature_cols.pkl` | Ordered feature list for model input | — |
+| **Class Names** | `models/class_names.pkl` | Maps CNN output index → disease class name | — |
 
 ---
 
 ## 🔬 Plant Disease Detection
 
 ### Dataset
-
 - **Source:** PlantVillage Dataset
 - **Images:** 116,147
 - **Disease Classes:** 72
@@ -84,9 +127,9 @@ No installation needed — the app is fully deployed and accessible from any bro
 - 20 epochs
 
 **Phase 2 — Fine-Tuning**
-- Unfrozen upper layers
-- Learning rate reduction
-- 10 epochs
+- Unfrozen upper MobileNetV2 layers
+- Reduced learning rate
+- 10 additional epochs
 
 ### Results
 
@@ -107,62 +150,20 @@ Apple • Bell Pepper • Blueberry • Cassava • Cherry • Coffee • Corn �
 
 ---
 
-## 🧪 Fertilizer Optimization
-
-The fertilizer recommendation engine analyzes agricultural inputs and suggests optimal **Nitrogen (N)**, **Phosphorus (P)**, and **Potassium (K)** levels to maximize crop productivity and improve yield outcomes.
-
----
-
-## 📊 Explainable AI (SHAP)
-
-To improve transparency and trust, SHAP visualizations are integrated throughout the system, allowing users to:
-
-- Understand the key drivers behind each prediction
-- Analyze feature importance across models
-- Interpret crop yield predictions with confidence
-
-This bridges the gap between AI predictions and real-world agricultural decision-making.
-
----
-
-## ☁️ Deployment
-
-The application is deployed using **Streamlit** on **Hugging Face Spaces**.
-
-### Deployment Architecture
-
-```text
-                     User
-                      │
-                      ▼
-            Streamlit Frontend
-                      │
-        ┌─────────────┼─────────────────┬───────────────────┐
-        ▼             ▼                 ▼                    ▼
- Disease Detection  Yield Prediction  Fertilizer        SHAP
-     (CNN)            (ML Models)     Optimization   Explainability
-        │             │                 │                    │
-        └─────────────┴─────────────────┴───────────────────┘
-                      │
-                      ▼
-              Results Dashboard
-```
-
----
-
 ## 🛠️ Technology Stack
 
 <div align="center">
 
 | Category | Tools |
 |---|---|
-| **Deep Learning** | TensorFlow • Keras • MobileNetV2 |
-| **Machine Learning** | Scikit-Learn • XGBoost |
+| **Frontend** | React 19, Vite 8, React Router v7, Tailwind CSS v4, Axios, Lucide React |
+| **Fonts / Design** | Inter (UI text), Playfair Display (headings), custom `brand` color palette |
+| **Backend API** | FastAPI, Uvicorn, Python-Multipart, Pydantic |
+| **Deep Learning** | TensorFlow, Keras, MobileNetV2 |
+| **Machine Learning** | Scikit-Learn, XGBoost |
 | **Explainable AI** | SHAP |
-| **Web Application** | Streamlit |
-| **Data Processing** | Pandas • NumPy |
-| **Visualization** | Matplotlib • Seaborn |
-| **Deployment** | Hugging Face Spaces |
+| **Data Processing** | Pandas, NumPy, Pillow |
+| **Legacy Frontend** | Streamlit (still present in `app.py`) |
 
 </div>
 
@@ -173,11 +174,34 @@ The application is deployed using **Streamlit** on **Hugging Face Spaces**.
 ```text
 precision-agriculture/
 │
-├── app.py
-├── main.py
-├── requirements.txt
+├── app.py                        # Legacy Streamlit app (retained for reference)
+├── main.py                       # ML pipeline entry point (yield training)
+├── requirements.txt              # Root Python dependencies
 │
-├── models/
+├── backend/                      # FastAPI REST API
+│   ├── main.py                   # All API routes + model loading
+│   └── requirements.txt          # Backend-specific dependencies
+│
+├── frontend/                     # React + Vite SPA
+│   ├── index.html                # Entry HTML (title: "Smart Agri | See. Predict. Grow.")
+│   ├── vite.config.js            # Vite config
+│   ├── tailwind.config.js        # Tailwind v4 color tokens (brand palette)
+│   ├── postcss.config.js         # PostCSS with @tailwindcss/postcss
+│   ├── package.json
+│   └── src/
+│       ├── main.jsx              # React entry point
+│       ├── App.jsx               # Router + page layout
+│       ├── api.js                # Axios API client (base: http://localhost:8000)
+│       ├── index.css             # Global styles, @theme tokens, Google Fonts
+│       └── components/
+│           ├── Navbar.jsx        # Sticky nav with "Smart Agri" brand + mobile menu
+│           ├── Home.jsx          # Landing page with feature cards
+│           ├── DiseaseDetection.jsx  # Image upload + CNN inference results
+│           ├── YieldPrediction.jsx   # Multi-input form + yield output card
+│           ├── FertilizerOptimizer.jsx # NPK form + delta + yield impact panel
+│           └── ShapInsights.jsx  # SHAP bar + beeswarm plot viewer
+│
+├── models/                       # Pre-trained model artifacts (frozen)
 │   ├── cnn_disease_model.h5
 │   ├── best_model.pkl
 │   ├── class_names.pkl
@@ -186,7 +210,7 @@ precision-agriculture/
 │   ├── le_item.pkl
 │   └── feature_cols.pkl
 │
-├── src/
+├── src/                          # Core ML source modules
 │   ├── cnn_model.py
 │   ├── train_cnn.py
 │   ├── image_preprocess.py
@@ -196,8 +220,9 @@ precision-agriculture/
 │   ├── train.py
 │   ├── evaluate.py
 │   ├── explainability.py
-│   └── optimizer.py
+│   └── optimizer.py             # NPK grid-search optimizer (used by FastAPI)
 │
+├── data/
 └── notebooks/
     ├── 01_eda_yield.ipynb
     ├── 02_eda_soil.ipynb
@@ -206,64 +231,142 @@ precision-agriculture/
 
 ---
 
-## ⚙️ Local Installation
+## ⚙️ Local Setup
+
+### Prerequisites
+
+- Python 3.9+ with pip
+- Node.js 18+ with npm
+- A virtual environment (recommended)
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/SHARMI-P/precision-agriculture.git
+git clone https://github.com/NareshParab/Agriculture_AI_Assistance.git
 cd precision-agriculture
 ```
 
-### 2. Install Dependencies
+### 2. Set Up Python Environment
 
 ```bash
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# macOS / Linux
+source .venv/bin/activate
+
 pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 
-### 3. Download Model Files
+### 3. Install Frontend Dependencies
 
-Download the pretrained model files from:
+```bash
+cd frontend
+npm install
+cd ..
+```
 
-🔗 [Google Drive — Model Files](https://drive.google.com/drive/folders/1EkbqMN-53W1_E4zp0aAV7ANKsgkOgLDG)
+### 4. Place Model Files
 
-Place them inside the `models/` directory:
+Ensure the following files exist in `models/`:
 
 ```text
 models/
-├── cnn_disease_model.h5
-└── best_model.pkl
+├── cnn_disease_model.h5     ← TensorFlow CNN for disease detection
+├── best_model.pkl           ← Sklearn/XGBoost yield model
+├── class_names.pkl
+├── scaler.pkl
+├── le_area.pkl
+├── le_item.pkl
+└── feature_cols.pkl
 ```
 
 ---
 
-## ▶️ Run the Application
+## 🚀 Running the App
+
+You need **two terminals** running simultaneously:
+
+### Terminal 1 — Start the FastAPI Backend
 
 ```bash
-streamlit run app.py
+# From the project root
+.venv\Scripts\uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+Backend will be available at: **http://localhost:8000**  
+Interactive API docs: **http://localhost:8000/docs**
+
+### Terminal 2 — Start the React Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+Frontend will be available at: **http://localhost:5173**
+
+> ⚠️ **Both servers must be running** for features to work. The frontend calls the backend at `http://localhost:8000`. If the backend is down, all prediction pages will show a connection error.
 
 ---
 
-## 🧪 Run the Full Pipeline
+## 🧪 Run the ML Training Pipeline
 
 | Task | Command |
 |---|---|
-| Yield Prediction Pipeline | `python main.py` |
-| CNN Training | `python src/train_cnn.py` |
-| Launch Web Application | `streamlit run app.py` |
+| Full Yield Prediction Pipeline | `python main.py` |
+| CNN Training (disease model) | `python src/train_cnn.py` |
+| Generate SHAP Insights | Included in `python main.py` → outputs to `plots/` |
+| Legacy Streamlit App | `streamlit run app.py` |
 
 ---
 
-## 📸 Application Screenshots
+## 🎨 UI & Design Notes
 
-| Disease Detection | Yield Prediction |
-|---|---|
-| _Add screenshot here_ | _Add screenshot here_ |
+The frontend was built with **Tailwind CSS v4**, which uses a CSS-first configuration approach. Custom brand colors are defined in `src/index.css` using the `@theme {}` block (not in `tailwind.config.js`, which is a v3 pattern):
 
-| Fertilizer Optimization | SHAP Insights |
-|---|---|
-| _Add screenshot here_ | _Add screenshot here_ |
+```css
+/* src/index.css */
+@theme {
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  /* ...etc */
+}
+```
+
+**Typography:**
+- UI text: **Inter** (Google Fonts)
+- Hero headings: **Playfair Display** (Google Fonts)
+- Base font size: `17px` (slightly larger than browser default for readability)
+
+**Brand Palette:**
+
+| Token | Hex | Usage |
+|---|---|---|
+| `brand-50` | `#f0fdf4` | Icon backgrounds, hover fills |
+| `brand-500` | `#22c55e` | Active nav indicator, progress bars |
+| `brand-600` | `#16a34a` | Primary buttons, icons |
+| `brand-700` | `#15803d` | Button hover states |
+
+---
+
+## 📊 Explainable AI (SHAP)
+
+To generate SHAP plots, run the full ML pipeline:
+
+```bash
+python main.py
+```
+
+This creates:
+- `plots/shap_bar.png` — Global feature importance (mean |SHAP|)
+- `plots/shap_beeswarm.png` — Feature impact direction per sample
+
+These are served by the FastAPI `/api/shap/insights` endpoint as base64-encoded images and displayed in the **Insights** tab of the React app.
 
 ---
 
@@ -271,23 +374,13 @@ streamlit run app.py
 
 This project demonstrates practical applications of AI in agriculture by integrating:
 
-- 🖼️ Computer Vision
-- 📈 Predictive Analytics
-- 🔍 Explainable AI
-- 🧭 Decision Support Systems
+- 🖼️ Computer Vision (CNN disease detection)
+- 📈 Predictive Analytics (yield forecasting)
+- 🔍 Explainable AI (SHAP insights)
+- 🧭 Decision Support (NPK optimizer)
+- 🌐 Modern Web Engineering (React SPA + REST API)
 
-The platform assists farmers and agricultural stakeholders in improving crop monitoring, disease management, and yield optimization — turning raw data into actionable farming decisions.
-
----
-
-## 👩‍💻 Author
-
-**Sharmi P**
-B.Tech Computer Science and Engineering
-Indian Institute of Information Technology Dharwad
-
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/SHARMI-P)
-[![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow?style=for-the-badge)](https://huggingface.co/spaces/SHARMIPANDIYAN/precision-agriculture)
+The platform assists farmers and agricultural stakeholders in improving crop monitoring, disease management, and yield optimization — turning raw sensor and environmental data into actionable farming decisions.
 
 ---
 
@@ -298,5 +391,7 @@ If you found this project useful, consider giving the repository a ⭐ on GitHub
 <div align="center">
 
 **Made with 🌿 for smarter, data-driven farming**
+
+*Smart Agri — See. Predict. Grow.*
 
 </div>

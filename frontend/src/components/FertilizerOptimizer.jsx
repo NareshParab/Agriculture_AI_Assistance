@@ -1,165 +1,321 @@
 import React, { useState, useEffect } from 'react';
-import { getMetadata, optimizeFertilizer } from '../api';
-import { Droplets, ArrowRight, Zap, Target } from 'lucide-react';
+import { getFertilizerCrops, recommendFertilizer } from '../api';
+import { FlaskConical, TrendingDown, TrendingUp, CheckCircle2, Leaf } from 'lucide-react';
 
+// ─── Status configuration ──────────────────────────────────────────────────
+const STATUS_CONFIG = {
+  LOW: {
+    bg       : 'bg-amber-50',
+    border   : 'border-amber-200',
+    badge    : 'bg-amber-100 text-amber-800',
+    icon     : TrendingUp,
+    iconColor: 'text-amber-500',
+    label    : 'LOW',
+    textColor: 'text-amber-700',
+    barColor : 'bg-amber-400',
+  },
+  HIGH: {
+    bg       : 'bg-red-50',
+    border   : 'border-red-200',
+    badge    : 'bg-red-100 text-red-800',
+    icon     : TrendingDown,
+    iconColor: 'text-red-500',
+    label    : 'HIGH',
+    textColor: 'text-red-700',
+    barColor : 'bg-red-400',
+  },
+  GOOD: {
+    bg       : 'bg-emerald-50',
+    border   : 'border-emerald-200',
+    badge    : 'bg-emerald-100 text-emerald-800',
+    icon     : CheckCircle2,
+    iconColor: 'text-emerald-500',
+    label    : 'OPTIMAL',
+    textColor: 'text-emerald-700',
+    barColor : 'bg-emerald-400',
+  },
+};
+
+// ─── Nutrient full names ────────────────────────────────────────────────────
+const NUTRIENT_LABEL = { N: 'Nitrogen (N)', P: 'Phosphorus (P)', K: 'Potassium (K)' };
+const NUTRIENT_COLOR = {
+  N: { accent: 'text-blue-600',   dot: 'bg-blue-500'  },
+  P: { accent: 'text-purple-600', dot: 'bg-purple-500' },
+  K: { accent: 'text-orange-600', dot: 'bg-orange-500' },
+};
+
+// ─── Range bar visualisation ────────────────────────────────────────────────
+function RangeBar({ current, min, max }) {
+  // Extend view window 20% beyond min/max so the bar doesn't clip
+  const viewMin  = Math.max(0, min - (max - min) * 0.3);
+  const viewMax  = max + (max - min) * 0.3;
+  const span     = viewMax - viewMin || 1;
+
+  const toPercent = (v) => Math.min(100, Math.max(0, ((v - viewMin) / span) * 100));
+
+  const rangeLeft  = toPercent(min);
+  const rangeWidth = toPercent(max) - rangeLeft;
+  const pinLeft    = toPercent(current);
+
+  return (
+    <div className="relative h-4 rounded-full bg-gray-200 overflow-visible mt-3 mb-1">
+      {/* Green "safe zone" band */}
+      <div
+        className="absolute top-0 h-full rounded-full bg-emerald-200 opacity-70"
+        style={{ left: `${rangeLeft}%`, width: `${rangeWidth}%` }}
+      />
+      {/* Current value pin */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-gray-800 border-2 border-white shadow z-10 transition-all"
+        style={{ left: `${pinLeft}%` }}
+        title={`Current: ${current}`}
+      />
+    </div>
+  );
+}
+
+// ─── Single nutrient card ───────────────────────────────────────────────────
+function NutrientCard({ nutrient, data }) {
+  const cfg    = STATUS_CONFIG[data.status];
+  const nColor = NUTRIENT_COLOR[nutrient];
+  const Icon   = cfg.icon;
+
+  return (
+    <div className={`rounded-2xl border p-5 flex flex-col gap-3 ${cfg.bg} ${cfg.border}`}>
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${nColor.dot}`} />
+          <span className={`font-semibold text-sm ${nColor.accent}`}>
+            {NUTRIENT_LABEL[nutrient]}
+          </span>
+        </div>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.badge}`}>
+          {cfg.label}
+        </span>
+      </div>
+
+      {/* Current value */}
+      <div className="flex items-end gap-1.5">
+        <span className="text-4xl font-extrabold text-gray-900">{data.current}</span>
+        <span className="text-sm text-gray-400 mb-1">kg/ha</span>
+        <Icon className={`w-5 h-5 mb-1.5 ml-auto ${cfg.iconColor}`} />
+      </div>
+
+      {/* Range bar */}
+      <RangeBar current={data.current} min={data.range_min} max={data.range_max} />
+
+      {/* Range labels */}
+      <div className="flex justify-between text-xs text-gray-400 -mt-1">
+        <span>Min {data.range_min}</span>
+        <span className="text-gray-500 font-medium">Recommended range</span>
+        <span>Max {data.range_max}</span>
+      </div>
+
+      {/* Action advice */}
+      <p className={`text-sm font-medium leading-snug ${cfg.textColor}`}>
+        {cfg.label === 'OPTIMAL'
+          ? 'Within the recommended range. No change needed.'
+          : data.action}
+      </p>
+    </div>
+  );
+}
+
+// ─── Main component ─────────────────────────────────────────────────────────
 const FertilizerOptimizer = () => {
-  const [metadata, setMetadata] = useState({ crops: [], areas: [] });
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
+  const [crops,    setCrops]    = useState([]);
+  const [loading,  setLoading]  = useState(false);
+  const [result,   setResult]   = useState(null);
+  const [error,    setError]    = useState(null);
 
   const [formData, setFormData] = useState({
     crop: '',
-    area: '',
-    N: 40,
-    P: 40,
-    K: 40
+    N   : '',
+    P   : '',
+    K   : '',
   });
 
+  // Load soil-dataset crops on mount
   useEffect(() => {
-    const fetchMeta = async () => {
-      try {
-        const data = await getMetadata();
-        setMetadata(data);
-        if (data.crops.length > 0 && data.areas.length > 0) {
-          setFormData(prev => ({ ...prev, crop: data.crops[0], area: data.areas[0] }));
-        }
-      } catch (err) {
-        console.error("Failed to load metadata", err);
-      }
-    };
-    fetchMeta();
+    getFertilizerCrops()
+      .then(({ crops: list }) => {
+        setCrops(list);
+        if (list.length > 0) setFormData(prev => ({ ...prev, crop: list[0] }));
+      })
+      .catch(() => setError('Could not load crop list. Please refresh.'));
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'crop' || name === 'area' ? value : Number(value)
+      [name]: name === 'crop' ? value : value === '' ? '' : Number(value),
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Validate inputs
+    if (formData.N === '' || formData.P === '' || formData.K === '') {
+      setError('Please enter values for Nitrogen, Phosphorus, and Potassium.');
+      return;
+    }
     setLoading(true);
     setError(null);
+    setResult(null);
     try {
-      const data = await optimizeFertilizer(formData);
+      const data = await recommendFertilizer({
+        crop: formData.crop,
+        N   : Number(formData.N),
+        P   : Number(formData.P),
+        K   : Number(formData.K),
+      });
       setResult(data);
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.message || 'Optimization failed. Please try again.';
+      const msg = err?.response?.data?.detail || err?.message || 'Recommendation failed. Please try again.';
       setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  // Summary counts
+  const counts = result
+    ? ['N', 'P', 'K'].reduce(
+        (acc, n) => ({ ...acc, [result[n].status]: (acc[result[n].status] || 0) + 1 }),
+        {}
+      )
+    : {};
+
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-4xl mx-auto">
+
+      {/* Page header */}
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-gray-900">Fertilizer Optimizer</h2>
-        <p className="mt-2 text-gray-600">Discover the exact NPK ratios needed to maximize your crop yield.</p>
+        <div className="inline-flex items-center gap-2 bg-brand-50 text-brand-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-3">
+          <Leaf className="w-4 h-4" />
+          Soil-data based · No ML estimation
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900">Fertilizer Advisor</h2>
+        <p className="mt-2 text-gray-500 max-w-xl mx-auto">
+          Compare your current soil nutrients against the scientifically observed ranges
+          for your crop derived from real field data.
+        </p>
       </div>
 
+      {/* Input card */}
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-8">
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-            <select name="area" value={formData.area} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg">
-              {metadata.areas.map(a => <option key={a} value={a}>{a}</option>)}
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* Crop selector */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Crop
+            </label>
+            <select
+              id="fert-crop"
+              name="crop"
+              value={formData.crop}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-xl text-gray-800 focus:ring-2 focus:ring-brand-400 focus:border-brand-400 outline-none bg-gray-50"
+            >
+              {crops.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-          </div>
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Crop</label>
-            <select name="crop" value={formData.crop} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg">
-              {metadata.crops.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          
-          <div className="md:col-span-2 grid grid-cols-3 gap-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current N</label>
-              <input type="number" name="N" value={formData.N} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current P</label>
-              <input type="number" name="P" value={formData.P} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current K</label>
-              <input type="number" name="K" value={formData.K} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg" />
-            </div>
           </div>
 
-          <div className="md:col-span-1">
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-brand-600 text-white py-2 rounded-lg hover:bg-brand-700 font-semibold transition-colors disabled:opacity-70 flex justify-center items-center gap-2 h-[42px]"
-            >
-              {loading ? 'Optimizing...' : 'Optimize'}
-              {!loading && <Zap className="w-4 h-4" />}
-            </button>
+          {/* NPK inputs */}
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { key: 'N', label: 'Nitrogen (N)',    placeholder: 'e.g. 60', color: 'focus:ring-blue-400   focus:border-blue-400'   },
+              { key: 'P', label: 'Phosphorus (P)',  placeholder: 'e.g. 45', color: 'focus:ring-purple-400 focus:border-purple-400' },
+              { key: 'K', label: 'Potassium (K)',   placeholder: 'e.g. 20', color: 'focus:ring-orange-400 focus:border-orange-400' },
+            ].map(({ key, label, placeholder, color }) => (
+              <div key={key}>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  {label}
+                  <span className="text-gray-400 font-normal ml-1">(kg/ha)</span>
+                </label>
+                <input
+                  id={`fert-${key.toLowerCase()}`}
+                  type="number"
+                  name={key}
+                  value={formData[key]}
+                  onChange={handleChange}
+                  placeholder={placeholder}
+                  min="0"
+                  className={`w-full p-3 border border-gray-300 rounded-xl text-gray-800 outline-none bg-gray-50 focus:ring-2 ${color}`}
+                />
+              </div>
+            ))}
           </div>
+
+          {/* Submit */}
+          <button
+            id="fert-submit"
+            type="submit"
+            disabled={loading || crops.length === 0}
+            className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors"
+          >
+            {loading ? (
+              <span className="animate-pulse">Analysing…</span>
+            ) : (
+              <>
+                <FlaskConical className="w-4 h-4" />
+                Get Recommendation
+              </>
+            )}
+          </button>
         </form>
       </div>
 
-      {error && <div className="text-red-500 text-center mb-8">{error}</div>}
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-3 mb-6 text-sm font-medium">
+          {error}
+        </div>
+      )}
 
+      {/* Results */}
       {result && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up">
-          {/* NPK Recommendations */}
-          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 flex flex-col items-center">
-              <div className="text-blue-500 font-bold mb-1">Nitrogen (N)</div>
-              <div className="text-4xl font-extrabold text-blue-900 mb-2">{result.optimal_N}</div>
-              <div className="text-sm font-medium text-blue-600 flex items-center gap-1">
-                {result.delta_N > 0 ? '+' : ''}{result.delta_N} from current
-              </div>
-            </div>
-            <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100 flex flex-col items-center">
-              <div className="text-purple-500 font-bold mb-1">Phosphorus (P)</div>
-              <div className="text-4xl font-extrabold text-purple-900 mb-2">{result.optimal_P}</div>
-              <div className="text-sm font-medium text-purple-600 flex items-center gap-1">
-                {result.delta_P > 0 ? '+' : ''}{result.delta_P} from current
-              </div>
-            </div>
-            <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100 flex flex-col items-center">
-              <div className="text-orange-500 font-bold mb-1">Potassium (K)</div>
-              <div className="text-4xl font-extrabold text-orange-900 mb-2">{result.optimal_K}</div>
-              <div className="text-sm font-medium text-orange-600 flex items-center gap-1">
-                {result.delta_K > 0 ? '+' : ''}{result.delta_K} from current
-              </div>
-            </div>
-          </div>
+        <div className="space-y-6 animate-fade-in-up">
 
-          {/* Yield Impact */}
-          <div className="bg-gradient-to-br from-brand-500 to-brand-700 p-6 rounded-2xl shadow-md text-white flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-4">
-              <Target className="w-6 h-6 text-brand-100" />
-              <h3 className="text-lg font-semibold text-brand-50">Impact Analysis</h3>
-            </div>
-            
-            <div className="flex justify-between items-end mb-4 border-b border-brand-400 pb-4">
-              <div>
-                <div className="text-brand-200 text-sm mb-1">Baseline Yield</div>
-                <div className="text-xl font-medium">{result.baseline_yield.toLocaleString()}</div>
-              </div>
-              <ArrowRight className="w-5 h-5 text-brand-300 mb-1" />
-              <div className="text-right">
-                <div className="text-brand-200 text-sm mb-1">Maximized Yield</div>
-                <div className="text-3xl font-bold text-white">{result.predicted_yield.toLocaleString()}</div>
-              </div>
-            </div>
-
+          {/* Summary banner */}
+          <div className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-6 py-4 shadow-sm">
             <div>
-              <div className="text-brand-100 text-sm mb-1">Potential Improvement</div>
-              <div className="text-2xl font-bold text-yellow-300">
-                +{result.improvement_hgha.toLocaleString()} hg/ha
-                <span className="text-lg text-brand-200 ml-2">({result.improvement_pct}%)</span>
-              </div>
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Crop</p>
+              <p className="text-lg font-bold text-gray-900">{result.crop}</p>
+            </div>
+            <div className="flex gap-3">
+              {counts.GOOD  > 0 && (
+                <span className="flex items-center gap-1 text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                  <CheckCircle2 className="w-4 h-4" /> {counts.GOOD} Optimal
+                </span>
+              )}
+              {counts.LOW   > 0 && (
+                <span className="flex items-center gap-1 text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+                  <TrendingUp className="w-4 h-4" /> {counts.LOW} Low
+                </span>
+              )}
+              {counts.HIGH  > 0 && (
+                <span className="flex items-center gap-1 text-sm font-semibold text-red-700 bg-red-50 border border-red-200 px-3 py-1 rounded-full">
+                  <TrendingDown className="w-4 h-4" /> {counts.HIGH} High
+                </span>
+              )}
             </div>
           </div>
+
+          {/* Three nutrient cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {['N', 'P', 'K'].map(n => (
+              <NutrientCard key={n} nutrient={n} data={result[n]} />
+            ))}
+          </div>
+
+          {/* Data source note */}
+          <p className="text-center text-xs text-gray-400">
+            Recommended ranges derived from <strong>cleaned_soil.csv</strong> — real field sensor measurements across 100 samples per crop.
+          </p>
         </div>
       )}
     </div>

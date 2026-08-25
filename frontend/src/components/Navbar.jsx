@@ -1,89 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Sprout, BarChart3, FlaskConical, LineChart, Menu, X } from 'lucide-react';
+import { Sprout, BarChart3, FlaskConical, LineChart, Home as HomeIcon, Menu, X } from 'lucide-react';
 
-const Navbar = () => {
+const Navbar = ({ isHome = false }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled]     = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const navItems = [
-    { name: 'Home',              path: '/',           icon: <Sprout      className="w-5 h-5" /> },
-    { name: 'Disease Detection', path: '/disease',    icon: <FlaskConical className="w-5 h-5" /> },
-    { name: 'Yield Prediction',  path: '/yield',      icon: <BarChart3   className="w-5 h-5" /> },
-    { name: 'Fertilizer',        path: '/fertilizer', icon: <FlaskConical className="w-5 h-5" /> },
-    { name: 'Insights',          path: '/insights',   icon: <LineChart   className="w-5 h-5" /> },
+    { name: 'Home',                      path: '/',           icon: <HomeIcon     className="w-[18px] h-[18px]" /> },
+    { name: 'Disease Detection',         path: '/disease',    icon: <FlaskConical className="w-[18px] h-[18px]" /> },
+    { name: 'Yield Prediction',          path: '/yield',      icon: <BarChart3    className="w-[18px] h-[18px]" /> },
+    { name: 'Fertilizer Recommendation', path: '/fertilizer', icon: <FlaskConical className="w-[18px] h-[18px]" /> },
+    { name: 'Insights',                  path: '/insights',   icon: <LineChart    className="w-[18px] h-[18px]" /> },
   ];
 
   const linkClass = ({ isActive }) =>
-    `inline-flex items-center gap-2 px-2 pt-1 border-b-2 text-base font-semibold transition-colors duration-150 ${
+    `inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold transition-all duration-150 rounded-md ${
       isActive
-        ? 'border-brand-500 text-brand-700'
-        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-800'
+        ? 'text-emerald-700 border-b-2 border-emerald-600'
+        : 'text-gray-700 hover:text-emerald-700 border-b-2 border-transparent'
     }`;
 
+  const navBase = isHome
+    ? `fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[1280px] rounded-2xl border border-gray-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.08)] transition-all duration-300 ${
+        scrolled ? 'bg-white/98 shadow-lg' : 'bg-white/92'
+      } backdrop-blur-sm`
+    : 'sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100';
+
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50 border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+    <>
+      <nav className={navBase}>
+        <div className="px-5 lg:px-7">
+          <div className="flex justify-between items-center h-[68px]">
 
-          {/* Brand */}
-          <NavLink to="/" className="flex items-center gap-3 group select-none">
-            <div className="bg-brand-600 text-white rounded-xl p-2 shadow-sm group-hover:scale-105 transition-transform duration-200">
-              <Sprout className="w-7 h-7" />
-            </div>
-            <div className="leading-tight">
-              <span className="block text-2xl font-extrabold text-gray-900 tracking-tight" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-                Smart Agri
-              </span>
-              <span className="block text-xs font-semibold text-brand-600 tracking-widest uppercase">
-                See. Predict. Grow.
-              </span>
-            </div>
-          </NavLink>
+            {/* Brand */}
+            <NavLink to="/" className="flex items-center gap-3 group select-none shrink-0">
+              <div className="bg-emerald-700 text-white rounded-xl p-2 shadow-sm group-hover:scale-105 transition-transform duration-200">
+                <Sprout className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col justify-center leading-none">
+                <span className="block text-xl font-extrabold text-gray-900 tracking-tight" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                  Smart Agri
+                </span>
+                <span className="block text-[9px] font-bold text-emerald-700 tracking-[0.18em] uppercase mt-0.5">
+                  See. Predict. Grow.
+                </span>
+              </div>
+            </NavLink>
 
-          {/* Desktop nav links */}
-          <div className="hidden sm:flex sm:items-center sm:gap-1 h-full">
+            {/* Desktop nav */}
+            <div className="hidden lg:flex items-center gap-1 h-full">
+              {navItems.map((item) => (
+                <NavLink key={item.name} to={item.path} className={linkClass} end={item.path === '/'}>
+                  {item.icon}
+                  {item.name}
+                </NavLink>
+              ))}
+            </div>
+
+            {/* Mobile hamburger */}
+            <button
+              className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile dropdown */}
+        {mobileOpen && (
+          <div className="lg:hidden bg-white/98 border-t border-gray-100 px-4 pb-4 pt-2 space-y-1 rounded-b-2xl">
             {navItems.map((item) => (
-              <NavLink key={item.name} to={item.path} className={linkClass}>
+              <NavLink
+                key={item.name}
+                to={item.path}
+                end={item.path === '/'}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:bg-gray-50 hover:text-emerald-700'
+                  }`
+                }
+              >
                 {item.icon}
                 {item.name}
               </NavLink>
             ))}
           </div>
+        )}
+      </nav>
 
-          {/* Mobile hamburger */}
-          <button
-            className="sm:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile dropdown */}
-      {mobileOpen && (
-        <div className="sm:hidden bg-white border-t border-gray-100 px-4 pb-4 pt-2 space-y-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.path}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-3 rounded-lg text-base font-semibold transition-colors ${
-                  isActive
-                    ? 'bg-brand-50 text-brand-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`
-              }
-            >
-              {item.icon}
-              {item.name}
-            </NavLink>
-          ))}
-        </div>
-      )}
-    </nav>
+      {/* Spacer: only for non-home pages where navbar is sticky */}
+      {!isHome && <div className="h-0" />}
+    </>
   );
 };
 
