@@ -16,13 +16,12 @@ import base64
 app = FastAPI(title="Smart Agri API")
 
 # Read allowed origins from env var (set in Render dashboard).
-# Falls back to ["*"] for local development.
-_raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
-ALLOWED_ORIGINS = (
-    [o.strip() for o in _raw_origins.split(",")]
-    if _raw_origins != "*"
-    else ["*"]
+# Falls back to known origins for local dev + production.
+_raw_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,https://agriculture-ai-assistance-chi.vercel.app"
 )
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
