@@ -9,4 +9,4 @@ xgboost
 shap
 scipy
 Pillow
-tensorflow
+tensorflow==2.15.1
