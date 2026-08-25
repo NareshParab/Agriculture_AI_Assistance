@@ -37,6 +37,11 @@ MODELS_DIR = os.path.join(BASE_DIR, "models")
 SOIL_CSV   = os.path.join(BASE_DIR, "data", "processed", "cleaned_soil.csv")
 
 # ── Load global models ────────────────────────────────────────
+# Default all models to None — endpoints will return 503 if not loaded
+yield_model = scaler = feat_cols = le_area = le_item = None
+cnn_model   = None
+class_names = []
+
 try:
     yield_model = pickle.load(open(os.path.join(MODELS_DIR, "best_model.pkl"), "rb"))
     scaler      = pickle.load(open(os.path.join(MODELS_DIR, "scaler.pkl"),     "rb"))
@@ -47,8 +52,9 @@ try:
     cnn_model   = tf.keras.models.load_model(os.path.join(MODELS_DIR, "cnn_disease_model.h5"))
     with open(os.path.join(MODELS_DIR, "class_names.pkl"), "rb") as f:
         class_names = pickle.load(f)
+    print("✅ All models loaded successfully.")
 except Exception as e:
-    print(f"Error loading models: {e}")
+    print(f"⚠️  Error loading models: {e}")
 
 # ── Load soil reference data (used by fertilizer recommender) ──
 try:
@@ -126,6 +132,8 @@ def health_check():
 # ── Disease detection ─────────────────────────────────────────
 @app.post("/api/disease/predict")
 async def predict_disease(file: UploadFile = File(...)):
+    if cnn_model is None:
+        raise HTTPException(status_code=503, detail="Disease model not loaded. Check server logs.")
     if file.content_type not in ["image/jpeg", "image/png", "image/jpg"]:
         raise HTTPException(status_code=400, detail="Invalid file type")
 
@@ -164,6 +172,8 @@ async def predict_disease(file: UploadFile = File(...)):
 # ── Yield prediction ──────────────────────────────────────────
 @app.post("/api/yield/predict")
 def predict_yield(req: YieldPredictionRequest):
+    if yield_model is None:
+        raise HTTPException(status_code=503, detail="Yield model not loaded. Check server logs.")
     npk_ratio      = req.N / (req.P + req.K + 1)
     soil_fertility = 0.4 * req.N + 0.3 * req.P + 0.3 * req.K
     climate_index  = req.rainfall * 0.5 + (30 - abs(req.temp - 25)) * 0.3 + req.humidity * 0.2
