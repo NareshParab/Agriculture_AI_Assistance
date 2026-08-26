@@ -59,27 +59,43 @@ const ShapInsights = () => {
       )}
 
       {insights && Object.keys(insights).length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {insights.bar_plot && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Global Feature Importance</h3>
-              <p className="text-sm text-gray-500 mb-6">
-                This chart shows the average impact of each feature on the model's output magnitude. 
-                Features at the top have the highest overall influence on yield prediction.
-              </p>
-              <img src={insights.bar_plot} alt="SHAP Bar Plot" className="w-full rounded-lg" />
-            </div>
-          )}
+        <div className="space-y-8">
+          {/* Existing two charts — side by side on large screens */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {insights.bar_plot && (
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Global Feature Importance</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  This chart shows the average impact of each feature on the model's output magnitude. 
+                  Features at the top have the highest overall influence on yield prediction.
+                </p>
+                <img src={insights.bar_plot} alt="SHAP Bar Plot" className="w-full rounded-lg" />
+              </div>
+            )}
 
-          {insights.beeswarm_plot && (
+            {insights.beeswarm_plot && (
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Feature Impact Direction</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  This chart shows how high or low values of a feature affect the prediction. 
+                  Red means a high feature value, blue means a low feature value. 
+                  Points on the right increase yield, points on the left decrease it.
+                </p>
+                <img src={insights.beeswarm_plot} alt="SHAP Beeswarm Plot" className="w-full rounded-lg" />
+              </div>
+            )}
+          </div>
+
+          {/* Third chart — full width */}
+          {insights.dependence_plot && (
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Feature Impact Direction</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Top Feature Relationship</h3>
               <p className="text-sm text-gray-500 mb-6">
-                This chart shows how high or low values of a feature affect the prediction. 
-                Red means a high feature value, blue means a low feature value. 
-                Points on the right increase yield, points on the left decrease it.
+                This chart shows how the single most influential feature relates to the model's predictions.
+                Each point is one data sample. The colour represents the interaction effect with a second
+                feature, revealing non-linear patterns the model has learned.
               </p>
-              <img src={insights.beeswarm_plot} alt="SHAP Beeswarm Plot" className="w-full rounded-lg" />
+              <img src={insights.dependence_plot} alt="SHAP Dependence Plot" className="w-full rounded-lg" />
             </div>
           )}
         </div>

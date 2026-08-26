@@ -280,11 +280,16 @@ def recommend_fertilizer(req: FertilizerRequest):
 # ── SHAP insights ──────────────────────────────────────────────
 @app.get("/api/shap/insights")
 def get_shap_insights():
-    bar_path      = os.path.join(BASE_DIR, "plots", "shap_bar.png")
-    beeswarm_path = os.path.join(BASE_DIR, "plots", "shap_beeswarm.png")
+    bar_path        = os.path.join(BASE_DIR, "plots", "shap_bar.png")
+    beeswarm_path   = os.path.join(BASE_DIR, "plots", "shap_beeswarm.png")
+    dependence_path = os.path.join(BASE_DIR, "plots", "shap_dependence.png")
 
     response = {}
-    for key, path in [("bar_plot", bar_path), ("beeswarm_plot", beeswarm_path)]:
+    for key, path in [
+        ("bar_plot",        bar_path),
+        ("beeswarm_plot",   beeswarm_path),
+        ("dependence_plot", dependence_path),
+    ]:
         if os.path.exists(path):
             with open(path, "rb") as f:
                 response[key] = f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"

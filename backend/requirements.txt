@@ -9,4 +9,4 @@ xgboost
 shap
 scipy
 Pillow
-tensorflow==2.15.1
+tensorflow-cpu==2.16.1
