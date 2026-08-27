@@ -45,7 +45,7 @@ const DiseaseDetection = () => {
     <div className="max-w-5xl mx-auto">
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-bold text-gray-900">Plant Disease Detection</h2>
-        <p className="mt-2 text-gray-600">Upload a leaf image to instantly identify potential diseases.</p>
+        <p className="mt-2 text-slate-800 font-medium">Upload a leaf image to instantly identify potential diseases.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -149,6 +149,21 @@ const DiseaseDetection = () => {
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Supported Crops Section */}
+      <div className="mt-12 pt-8 border-t border-gray-100">
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-bold text-gray-900">Supported Plant & Crop Categories</h3>
+          <p className="mt-2 text-slate-800 font-medium">This disease detection model currently supports the following plant and crop categories.</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          {['Cassava', 'Corn (Maize)', 'Grape', 'Potato', 'Rice', 'Sugarcane', 'Tomato'].map((crop) => (
+            <span key={crop} className="px-4 py-2 bg-brand-50 text-brand-700 font-medium rounded-full text-sm border border-brand-100 shadow-sm">
+              {crop}
+            </span>
+          ))}
         </div>
       </div>
     </div>

@@ -198,7 +198,7 @@ const FertilizerOptimizer = () => {
           Soil-data based · No ML estimation
         </div>
         <h2 className="text-3xl font-bold text-gray-900">Fertilizer Advisor</h2>
-        <p className="mt-2 text-gray-500 max-w-xl mx-auto">
+        <p className="mt-2 text-slate-800 font-medium max-w-xl mx-auto">
           Compare your current soil nutrients against the scientifically observed ranges
           for your crop derived from real field data.
         </p>
@@ -318,6 +318,21 @@ const FertilizerOptimizer = () => {
           </p>
         </div>
       )}
+
+      {/* Supported Crops Section */}
+      <div className="mt-12 pt-8 border-t border-gray-100">
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-bold text-gray-900">Supported Crop Categories</h3>
+          <p className="mt-2 text-slate-800 font-medium">Fertilizer recommendations are currently available for the following crop categories.</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+          {['Banana', 'Blackgram', 'Chickpea', 'Coconut', 'Coffee', 'Cotton', 'Jute', 'Kidneybeans', 'Lentil', 'Maize', 'Mango', 'Mothbeans', 'Mungbean', 'Muskmelon', 'Orange', 'Papaya', 'Pigeonpeas', 'Pomegranate', 'Rice', 'Watermelon'].map((crop) => (
+            <span key={crop} className="px-4 py-2 bg-brand-50 text-brand-700 font-medium rounded-full text-sm border border-brand-100 shadow-sm">
+              {crop}
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

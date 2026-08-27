@@ -27,7 +27,7 @@ const ShapInsights = () => {
         <h2 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-3">
           Explainable AI <Lightbulb className="w-8 h-8 text-yellow-500" />
         </h2>
-        <p className="mt-2 text-gray-600 max-w-2xl mx-auto">
+        <p className="mt-2 text-slate-800 font-medium max-w-2xl mx-auto">
           Machine learning models shouldn't be black boxes. Using SHAP (SHapley Additive exPlanations), 
           we break down exactly which factors influence our yield predictions the most.
         </p>
@@ -65,7 +65,7 @@ const ShapInsights = () => {
             {insights.bar_plot && (
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Global Feature Importance</h3>
-                <p className="text-sm text-gray-500 mb-6">
+                <p className="text-sm text-slate-700 mb-6">
                   This chart shows the average impact of each feature on the model's output magnitude. 
                   Features at the top have the highest overall influence on yield prediction.
                 </p>
@@ -76,7 +76,7 @@ const ShapInsights = () => {
             {insights.beeswarm_plot && (
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Feature Impact Direction</h3>
-                <p className="text-sm text-gray-500 mb-6">
+                <p className="text-sm text-slate-700 mb-6">
                   This chart shows how high or low values of a feature affect the prediction. 
                   Red means a high feature value, blue means a low feature value. 
                   Points on the right increase yield, points on the left decrease it.
@@ -90,7 +90,7 @@ const ShapInsights = () => {
           {insights.dependence_plot && (
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Top Feature Relationship</h3>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm text-slate-700 mb-6">
                 This chart shows how the single most influential feature relates to the model's predictions.
                 Each point is one data sample. The colour represents the interaction effect with a second
                 feature, revealing non-linear patterns the model has learned.

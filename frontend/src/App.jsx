@@ -21,9 +21,9 @@ function AppShell() {
         className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroImg})` }}
       />
-      {/* Soft white wash for inner (non-home) pages so content is readable */}
+      {/* Soft overlay for inner pages: improved visibility with slight blur for readability */}
       {!isHome && (
-        <div className="fixed inset-0 -z-10 bg-white/70" />
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-white/80 via-white/50 to-white/70 backdrop-blur-[2px]" />
       )}
 
       <Navbar isHome={isHome} />
