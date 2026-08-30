@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import { wakeupBackend } from './api';
 import Home from './components/Home';
 import DiseaseDetection from './components/DiseaseDetection';
 import YieldPrediction from './components/YieldPrediction';
@@ -11,6 +12,10 @@ import heroImg from './assets/agri-hero.jpg';
 /* Inner wrapper so we can read the current route */
 function AppShell() {
   const location = useLocation();
+
+  useEffect(() => {
+    wakeupBackend();
+  }, []);
   const isHome = location.pathname === '/';
 
   return (

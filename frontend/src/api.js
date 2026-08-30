@@ -44,3 +44,11 @@ export const getMetadata = async () => {
   const response = await api.get('/api/metadata');
   return response.data;
 };
+
+export const wakeupBackend = async () => {
+  try {
+    await api.get('/health');
+  } catch (error) {
+    console.error('Failed to wake up backend:', error);
+  }
+};
